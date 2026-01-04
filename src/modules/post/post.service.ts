@@ -87,16 +87,17 @@ const getAllPost = async ({
     });
   }
   const result = await prisma.post.findMany({
+    //pagination
     take: limit,
     skip,
+    //filtering
     where: {
       AND: andCondition,
     },
-    orderBy:{
-      title:{
-        
-      }
-    }
+    // sorting
+    orderBy:sortBy && sortOrder ?{
+      [sortBy]:sortOrder
+    }:{cratedAt:"desc"}
   });
   return result;
 };
