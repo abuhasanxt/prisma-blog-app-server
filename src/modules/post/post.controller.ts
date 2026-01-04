@@ -27,23 +27,29 @@ const getAllPost = async (req: Request, res: Response) => {
     //filtering by tags
     const tags = req.query.tags ? (req.query.tags as string).split(",") : [];
     //filtering by isFeatured   true or false
-    const isFeatured=req.query.isFeatured
-    ? req.query.isFeatured==="true"
-    ?true
-    :req.query.isFeatured==="false"
-    ?false
-    :undefined
-     :undefined
+    const isFeatured = req.query.isFeatured
+      ? req.query.isFeatured === "true"
+        ? true
+        : req.query.isFeatured === "false"
+        ? false
+        : undefined
+      : undefined;
     //filtering by status
-    const status=req.query.status as PostStatus | undefined
-//filtering by authorId
-const authorId=req.query.authorId  as string | undefined
+    const status = req.query.status as PostStatus | undefined;
+    //filtering by authorId
+    const authorId = req.query.authorId as string | undefined;
+
+    const page=Number(req.query.page?? 1)
+const limit =Number(req.query.limit?? 1)
+
     const result = await postServices.getAllPost({
       search: searchString,
       tags,
       isFeatured,
       status,
-      authorId
+      authorId,
+      page,
+      limit
     });
 
     res.status(200).json({
