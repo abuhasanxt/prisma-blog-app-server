@@ -72,12 +72,12 @@ const getAllPost = async (req: Request, res: Response) => {
 
 const getPostById = async (req: Request, res: Response) => {
   try {
-    const {id}=req.params
+    const {postId}=req.params
   
-    if (!id) {
+    if (!postId) {
       throw new Error('post id is required !')
     }
-    const result = await postServices.getPostById(id );
+    const result = await postServices.getPostById(postId);
     res.status(200).json({
       success: true,
       message: "Post retrieved Successfully",

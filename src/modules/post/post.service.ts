@@ -110,22 +110,35 @@ const getAllPost = async ({
       count,
       page,
       limit,
-      totalPages:Math.ceil(count/limit)
+      totalPages: Math.ceil(count / limit),
     },
   };
 };
-const getPostById=async(id:string)=>{
-  const result=await prisma.post.findUnique({
-    where:{
-      id:id
-    }
-  })
-
-  return result
-}
+const getPostById = async (postId: string) => {
+  return await prisma.$transaction(async (tx) => {
+    //views count
+    await tx.post.update({
+      where: {
+        id: postId,
+      },
+      data: {
+        views: {
+          increment: 1,
+        },
+      },
+    });
+    //get by post
+    const postData = await tx.post.findUnique({
+      where: {
+        id: postId,
+      },
+    });
+    return postData;
+  });
+};
 
 export const postServices = {
   createPost,
   getAllPost,
-  getPostById
+  getPostById,
 };
