@@ -102,6 +102,12 @@ const getAllPost = async ({
     orderBy: {
       [sortBy]: sortOrder,
     },
+    //comment count
+    include:{
+      _count:{
+        select:{comments:true}
+      }
+    }
   });
   const count = await prisma.post.count({
     where: {
@@ -142,19 +148,27 @@ const getPostById = async (postId: string) => {
             parentId: null,
             status: CommentStatus.APPROVED,
           },
+          orderBy: { cratedAt: "desc" },
           include: {
             replies: {
               where: {
                 status: CommentStatus.APPROVED,
               },
+              orderBy: { cratedAt: "asc" },
               include: {
                 replies: {
-                  where:{
-                    status:CommentStatus.APPROVED
-                  }
+                  where: {
+                    status: CommentStatus.APPROVED,
+                  },
+                  orderBy: { cratedAt: "asc" },
                 },
               },
             },
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
           },
         },
       },
