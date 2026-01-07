@@ -26,44 +26,68 @@ const createComment = async (payload: {
   return result;
 };
 
-const getCommentById=async(commentId:string)=>{
-const result=await prisma.comment.findUnique({
-    where:{
-        id:commentId
+const getCommentById = async (commentId: string) => {
+  const result = await prisma.comment.findUnique({
+    where: {
+      id: commentId,
     },
-    include:{
-        post:{
-            select:{
-                id:true,
-                title:true,
-                content:true
-            }
-        }
-    }
-})
-return result
-}
+    include: {
+      post: {
+        select: {
+          id: true,
+          title: true,
+          content: true,
+        },
+      },
+    },
+  });
+  return result;
+};
 
-const getCommentByAuthor=async(authorId:string)=>{
- const result=await prisma.comment.findMany({
-    where:{
-        authorId
+const getCommentByAuthor = async (authorId: string) => {
+  const result = await prisma.comment.findMany({
+    where: {
+      authorId,
     },
-    orderBy:{cratedAt:"desc"},
-    include:{
-        post:{
-            select:{
-                id:true,
-                title:true
-            }
-        }
-    }
- })
- return result
-}
+    orderBy: { cratedAt: "desc" },
+    include: {
+      post: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
+    },
+  });
+  return result;
+};
+
+const deleteComment = async (commentId: string, authorId: string) => {
+  const commentData = await prisma.comment.findFirst({
+    where: {
+      id: commentId,
+      authorId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!commentData) {
+    throw new Error("Your provided input is invalid");
+  }
+
+  const result = await prisma.comment.delete({
+    where: {
+      id: commentData.id,
+    },
+  });
+  return result;
+};
 
 export const commentServices = {
   createComment,
   getCommentById,
-  getCommentByAuthor
+  getCommentByAuthor,
+  deleteComment,
 };
