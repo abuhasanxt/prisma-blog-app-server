@@ -91,8 +91,7 @@ const updateComment = async (
   data: { content?: string; status?: CommentStatus },
   authorId: string
 ) => {
-
-     const commentData = await prisma.comment.findFirst({
+  const commentData = await prisma.comment.findFirst({
     where: {
       id: commentId,
       authorId,
@@ -106,15 +105,30 @@ const updateComment = async (
     throw new Error("Your provided input is invalid");
   }
 
+  const result = await prisma.comment.update({
+    where: {
+      id: commentId,
+      authorId,
+    },
+    data,
+  });
+  return result;
+};
 
-    const result = await prisma.comment.update({
-      where: {
-        id: commentId,
-        authorId
-      },
-      data
-    });
-    return result;
+const moderateComment = async (id: string, data: { status: CommentStatus }) => {
+  await prisma.comment.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
+
+  const result = await prisma.comment.update({
+    where: {
+      id,
+    },
+    data,
+  });
+  return result;
 };
 
 export const commentServices = {
@@ -123,4 +137,5 @@ export const commentServices = {
   getCommentByAuthor,
   deleteComment,
   updateComment,
+  moderateComment,
 };
