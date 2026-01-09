@@ -237,7 +237,7 @@ const updatePost = async (
   }
 
   if (!isAdmin) {
-    delete data.isFeatured
+    delete data.isFeatured;
   }
   const result = await prisma.post.update({
     where: {
@@ -247,10 +247,37 @@ const updatePost = async (
   });
   return result;
 };
+
+const deletePost = async (
+  postId: string,
+  authorId: string,
+  isAdmin: boolean
+) => {
+  const postData = await prisma.post.findFirstOrThrow({
+    where: {
+      id: postId,
+    },
+    select: {
+      id: true,
+      authorId: true,
+    },
+  });
+  if (!isAdmin && (postData.authorId !== authorId)) {
+    throw new Error("You are not the owner/creator of the post");
+  }
+
+  const result = await prisma.post.delete({
+    where: {
+      id: postId,
+    },
+  });
+  return result;
+};
 export const postServices = {
   createPost,
   getAllPost,
   getPostById,
   getMyPosts,
   updatePost,
+  deletePost,
 };
