@@ -5,6 +5,7 @@ import {
 } from "../../../generated/prisma/client";
 import { PostWhereInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
+import { UserRole } from "../../middlewares/auth";
 
 const createPost = async (
   data: Omit<Post, "id" | "createdAt" | "updatedAt" | "authorId">,
@@ -275,16 +276,20 @@ const deletePost = async (
 };
 
 const getStats = async () => {
-  //postCount,publishedPosts,draftPosts,archivedPosts totalComments,rejectComments,totalViews
+  //postCount,publishedPosts,draftPosts,archivedPosts totalComments,rejectComments,totalViews,totalUser, adminCount, userCount,
   return await prisma.$transaction(async (tx) => {
     const [
       totalPost,
       publishedPosts,
       draftPosts,
       archivedPosts,
+      totalViews,
       totalComments,
       approvedComments,
       rejectComments,
+      totalUser,
+      adminCount,
+      userCount,
     ] = await Promise.all([
       // postCount
       await tx.post.count(),
@@ -298,17 +303,24 @@ const getStats = async () => {
       // archivedPost
       await tx.post.count({ where: { status: PostStatus.ARCHIVED } }),
 
+      //totalViews
+      await tx.post.aggregate({ _sum: { views: true } }),
+
       // totalComments,
       await tx.comment.count(),
       //approvedComments
       await tx.comment.count({ where: { status: CommentStatus.APPROVED } }),
       //rejectComments
       await tx.comment.count({ where: { status: CommentStatus.REJECT } }),
-      // const totalViews = await tx.post.count({
-      //   where: {
-      //    views:views
-      //   },
-      // });
+
+      //totalUser
+      await tx.user.count(),
+
+      //adminCount
+      await tx.user.count({ where: { role: UserRole.ADMIN } }),
+
+      //userCount
+      await tx.user.count({ where: { role: UserRole.USER } }),
     ]);
 
     return {
@@ -316,13 +328,17 @@ const getStats = async () => {
       publishedPosts,
       archivedPosts,
       draftPosts,
+      totalViews:totalViews._sum.views,
       totalComments,
       approvedComments,
       rejectComments,
+      totalUser,
+      adminCount,
+      userCount,
     };
   });
 
-  console.log("get stats");
+  
 };
 export const postServices = {
   createPost,
