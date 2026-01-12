@@ -262,7 +262,7 @@ const deletePost = async (
       authorId: true,
     },
   });
-  if (!isAdmin && (postData.authorId !== authorId)) {
+  if (!isAdmin && postData.authorId !== authorId) {
     throw new Error("You are not the owner/creator of the post");
   }
 
@@ -273,6 +273,57 @@ const deletePost = async (
   });
   return result;
 };
+
+const getStats = async () => {
+  //postCount,publishedPosts,draftPosts,archivedPosts totalComments,rejectComments,totalViews
+  return await prisma.$transaction(async (tx) => {
+    const [
+      totalPost,
+      publishedPosts,
+      draftPosts,
+      archivedPosts,
+      totalComments,
+      approvedComments,
+      rejectComments,
+    ] = await Promise.all([
+      // postCount
+      await tx.post.count(),
+
+      // publishedPosts
+      await tx.post.count({ where: { status: PostStatus.PUBLISHED } }),
+
+      // draftPosts
+      await tx.post.count({ where: { status: PostStatus.DRAFT } }),
+
+      // archivedPost
+      await tx.post.count({ where: { status: PostStatus.ARCHIVED } }),
+
+      // totalComments,
+      await tx.comment.count(),
+      //approvedComments
+      await tx.comment.count({ where: { status: CommentStatus.APPROVED } }),
+      //rejectComments
+      await tx.comment.count({ where: { status: CommentStatus.REJECT } }),
+      // const totalViews = await tx.post.count({
+      //   where: {
+      //    views:views
+      //   },
+      // });
+    ]);
+
+    return {
+      totalPost,
+      publishedPosts,
+      archivedPosts,
+      draftPosts,
+      totalComments,
+      approvedComments,
+      rejectComments,
+    };
+  });
+
+  console.log("get stats");
+};
 export const postServices = {
   createPost,
   getAllPost,
@@ -280,4 +331,5 @@ export const postServices = {
   getMyPosts,
   updatePost,
   deletePost,
+  getStats,
 };
