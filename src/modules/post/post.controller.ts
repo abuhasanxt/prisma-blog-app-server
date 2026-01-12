@@ -4,7 +4,7 @@ import { PostStatus } from "../../../generated/prisma/enums";
 import paginationSortingHelper from "../../helpers/pagination&&sortingHelpers";
 import { UserRole } from "../../middlewares/auth";
 
-const createPost = async (req: Request, res: Response,next:NextFunction) => {
+const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user;
     if (!user) {
@@ -13,9 +13,12 @@ const createPost = async (req: Request, res: Response,next:NextFunction) => {
       });
     }
     const result = await postServices.createPost(req.body, user.id as string);
-    res.status(201).json(result);
+    res.status(201).json({
+      message: "post create successfully!",
+      data: result,
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 
@@ -112,7 +115,7 @@ const getMyPosts = async (req: Request, res: Response) => {
     });
   }
 };
-const updatePost = async (req: Request, res: Response) => {
+const updatePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -134,13 +137,8 @@ const updatePost = async (req: Request, res: Response) => {
       message: " post update successfully! ",
       data: result,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: " post update failed",
-      error: error.message,
-      details: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -176,8 +174,6 @@ const deletePost = async (req: Request, res: Response) => {
 };
 const getStats = async (req: Request, res: Response) => {
   try {
-  
-
     const result = await postServices.getStats();
 
     res.status(200).json({
@@ -195,7 +191,6 @@ const getStats = async (req: Request, res: Response) => {
   }
 };
 
-
 export const postController = {
   createPost,
   getAllPost,
@@ -203,5 +198,5 @@ export const postController = {
   getMyPosts,
   updatePost,
   deletePost,
-  getStats
+  getStats,
 };
